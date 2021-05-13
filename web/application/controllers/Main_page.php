@@ -44,9 +44,15 @@ class Main_page extends MY_Controller
         return $this->response_success(['boosterpacks' => $posts]);
     }
 
-    public function get_post(int $post_id){
+    public function get_post(int $post_id)
+    {
+        $post = Post_model::preparation(new Post_model($post_id));
 
-        //TODO получения поста по id
+        if (!$post) {
+            throw new Exception("Post with id {$post_id} not found", 404);
+        }
+
+        return $this->response_success(['post' => $post]);
     }
 
 

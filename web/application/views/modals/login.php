@@ -13,7 +13,7 @@
                     <div class="form-group">
                         <label for="exampleInputEmail1">Please enter login</label>
                         <input type="email" class="form-control" id="inputEmail" aria-describedby="emailHelp" v-model="email" required>
-                        <div class="invalid-feedback" v-if="invalidLogin">
+                        <div class="invalid-feedback" v-if="invalidEmail">
                             Please write a username.
                         </div>
                     </div>

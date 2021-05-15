@@ -30,12 +30,34 @@ class Comment_model extends Emerald_Model {
     protected $time_created;
     /** @var string */
     protected $time_updated;
+    /** @var int */
+    protected $level;
 
     // generated
     protected $comments;
     protected $likes;
     protected $user;
 
+    protected $children = [];
+
+    /**
+     * @return int
+     */
+    public function get_level(): int
+    {
+        return $this->level;
+    }
+
+    /**
+     * @param int $level
+     * @return bool
+     * @throws \ShadowIgniterException
+     */
+    public function set_level(int $level): bool
+    {
+        $this->level = $level;
+        return $this->save('level', $level);
+    }
 
     /**
      * @return int
@@ -155,7 +177,7 @@ class Comment_model extends Emerald_Model {
     /**
      * @return Int
      */
-    public function get_reply_id(): int
+    public function get_reply_id(): ?int
     {
         return $this->reply_id;
     }
@@ -176,6 +198,22 @@ class Comment_model extends Emerald_Model {
     public function get_comments()
     {
         return $this->comments;
+    }
+
+    /**
+     * @return array
+     */
+    public function get_children(): array
+    {
+        return $this->children;
+    }
+
+    /**
+     * @param $child
+     */
+    public function set_child($child): void
+    {
+        $this->children[] = $child;
     }
 
     /////////// GENERATED
@@ -234,7 +272,10 @@ class Comment_model extends Emerald_Model {
      */
     public static function get_all_by_assign_id(int $assign_id): array
     {
-        return static::transform_many(App::get_s()->from(self::CLASS_TABLE)->where(['assign_id' => $assign_id])->orderBy('time_created', 'ASC')->many());
+        return static::transform_many(App::get_s()->from(self::CLASS_TABLE)
+            ->where(['assign_id' => $assign_id])
+            ->orderBy(["level", "time_created"], "DESC")
+            ->many(), "id");
     }
 
     /**
@@ -250,7 +291,33 @@ class Comment_model extends Emerald_Model {
 
     public static function get_all_by_replay_id(int $reply_id)
     {
-        //TODO
+        //TODO: not necessary
+    }
+
+    /**
+     * @param $post_id
+     * @param $comment_text
+     * @param $reply_id
+     * @return false|object|null
+     * @throws Exception
+     */
+    public static function add_comment($post_id, $comment_text, $reply_id)
+    {
+        if ($reply_id)
+        {
+            $reply_comment = new Comment_model($reply_id);
+        } else {
+            $reply_comment = new Comment_model();
+        }
+
+        return App::get_s()->from(\Model\Comment_model::CLASS_TABLE)
+            ->insert([
+                'user_id' => User_model::get_session_id(),
+                'assign_id' => $post_id,
+                'text' => $comment_text,
+                'reply_id' => $reply_comment->is_loaded() ? $reply_comment->get_id() : NULL,
+                'level' => $reply_comment->is_loaded() ? ($reply_comment->get_level() + 1) : 0
+            ])->execute();
     }
 
     /**
@@ -261,8 +328,7 @@ class Comment_model extends Emerald_Model {
      */
     public static function preparation(Comment_model $data, string $preparation = 'default')
     {
-        switch ($preparation)
-        {
+        switch ($preparation) {
             case 'default':
                 return self::_preparation_default($data);
             default:
@@ -270,6 +336,38 @@ class Comment_model extends Emerald_Model {
         }
     }
 
+    public static function preparation_many(array $data, string $preparation = 'default', string $key = NULL): array
+    {
+        switch ($preparation) {
+            case "group_with_child":
+                return self::_preparation_many_group_with_child($data);
+            default:
+                return parent::preparation_many($data, $preparation, $key);
+        }
+    }
+
+    /**
+     * @param $data
+     * @return array
+     */
+    private static function _preparation_many_group_with_child ($data): array
+    {
+        $res = [];
+
+        foreach ($data as $key => $datum) {
+            /** @var Comment_model $datum */
+            $comment = self::_preparation_default($datum);
+            if ($datum->get_reply_id() === NULL)
+            {
+                $res[] = $comment;
+            } else
+            {
+                $data[$datum->get_reply_id()]->set_child($comment);
+            }
+        }
+
+        return $res;
+    }
 
     /**
      * @param self $data
@@ -282,12 +380,14 @@ class Comment_model extends Emerald_Model {
         $o->id = $data->get_id();
         $o->text = $data->get_text();
 
-        $o->user = User_model::preparation($data->get_user(), 'main_page');
+        $o->user = User_model::preparation($data->get_user(), 'full');
 
         $o->likes = $data->get_likes();
 
         $o->time_created = $data->get_time_created();
         $o->time_updated = $data->get_time_updated();
+
+        $o->children = $data->get_children();
 
         return $o;
     }

@@ -26,29 +26,21 @@ use Model\User_model;
       </button>
       <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
         <li class="nav-item">
-            <? if (User_model::is_logged()) {?>
-              <a href="/main_page/logout" class="btn btn-primary my-2 my-sm-0"
-                 data-target="#loginModal">Log out, <?= $user->personaname?>
-              </a>
-            <? } else {?>
-              <button type="button" class="btn btn-success my-2 my-sm-0" type="submit" data-toggle="modal"
+              <button type="button" @click="logout()" class="btn btn-primary my-2 my-sm-0" v-if="isUserLogged">Log out, {{user_data.personaname}}
+              </button>
+              <button type="button" class="btn btn-success my-2 my-sm-0" data-toggle="modal" v-else
                       data-target="#loginModal">Log IN
               </button>
-            <? } ?>
         </li>
         <li class="nav-item">
-            <?  if (User_model::is_logged()) {?>
-              <button type="button" class="btn btn-success my-2 my-sm-0" type="submit" data-toggle="modal"
+              <button type="button" class="btn btn-success my-2 my-sm-0" data-toggle="modal" v-if="isUserLogged"
                       data-target="#addModal">Add balance
               </button>
-            <? }?>
         </li>
         <li class="nav-item">
-            <?  if (User_model::is_logged()) {?>
-                <a href="" role="button">
-                    Likes:
+                <a href="#" role="button" v-if="isUserLogged">
+                    Likes: {{user_data.likes_balance}}
                 </a>
-            <? }?>
         </li>
       </div>
 <!--      <div class="collapse navbar-collapse" id="navbarTogglerDemo01">-->
@@ -111,67 +103,7 @@ use Model\User_model;
     <!-- Modal -->
     <?php require_once "modals/login.php"?>
     <!-- Modal -->
-  <div class="modal fade bd-example-modal-xl" id="postModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-       aria-hidden="true" v-if="post">
-    <div class="modal-dialog modal-xl" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLabel">Post {{post.id}}</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <div class="user">
-            <div class="avatar"><img :src="post.user.avatarfull" alt="Avatar"></div>
-            <div class="name">{{post.user.personaname}}</div>
-          </div>
-          <div class="card mb-3">
-            <div class="post-img" v-bind:style="{ backgroundImage: 'url(' + post.img + ')' }"></div>
-            <div class="card-body">
-              <div class="likes" @click="addLike('post', post.id)">
-                <div class="heart-wrap" v-if="!likes">
-                  <div class="heart">
-                    <svg class="bi bi-heart" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                      <path fill-rule="evenodd" d="M8 2.748l-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 01.176-.17C12.72-3.042 23.333 4.867 8 15z" clip-rule="evenodd"/>
-                    </svg>
-                  </div>
-                  <span>{{post.likes}}</span>
-                </div>
-                <div class="heart-wrap" v-else>
-                  <div class="heart">
-                    <svg class="bi bi-heart-fill" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                      <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z" clip-rule="evenodd"/>
-                    </svg>
-                  </div>
-                  <span>{{likes}}</span>
-                </div>
-              </div>
-              <p class="card-text" v-for="comment in post.coments">
-                  {{comment.user.personaname + ' - '}}
-                  <small class="text-muted">{{comment.text}}</small>
-                  <a role="button" @click="addLike('comment', comment.id)">
-                      <svg class="bi bi-heart-fill" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                          <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z" clip-rule="evenodd"/>
-                      </svg>
-                      {{ comment.likes }}
-                  </a>
-              </p>
-              <form class="form-inline">
-                <div class="form-group">
-                  <input type="text" class="form-control" id="addComment" v-model="commentText">
-                </div>
-                <button type="button" class="btn btn-primary" @click="addComment(post.id)">Add comment</button>
-              </form>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        </div>
-      </div>
-    </div>
-  </div>
+    <?php require_once "modals/post.php"?>
   <!-- Modal -->
   <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
        aria-hidden="true">

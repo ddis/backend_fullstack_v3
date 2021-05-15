@@ -1,170 +1,250 @@
 const STATUS_SUCCESS = 'success';
 const STATUS_ERROR = 'error';
+
+Vue.component("comments-tree", {
+    template:
+        `<div class="media">
+            <img class="mr-3 rounded-circle" alt="Bootstrap Media Preview"
+                 :src="comment.user.avatarfull"/>
+            <div class="media-body">
+                <div class="row">
+                    <div class="col-8 d-flex">
+                        <h5>{{comment.user.personaname}}</h5> <span>&nbsp- {{comment.time_created}}</span>&nbsp
+                        <a role="button" @click="addLike(comment)">
+                         <svg class="bi bi-heart-fill" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                          <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z" clip-rule="evenodd"/>
+                         </svg>
+                         {{ comment.likes }}
+                       </a>
+                    </div>
+                    <div class="col-4">
+                        <div class="pull-right reply">
+                            <a href="#" @click="reply(comment)"><span><i class="fa fa-reply"></i> reply</span></a>
+                        </div>
+                    </div>
+                </div>
+                {{comment.text}}
+                <comments-tree class="item" v-for="(child, index) in comment.children" :comment="child" v-if="hasChild"></comments-tree>`,
+    props: {
+        comment: Object
+    },
+    data: function () {
+        return {}
+    },
+    computed: {
+        hasChild: function () {
+            return this.comment.children && this.comment.children.length;
+        }
+    },
+    methods: {
+        addLike: (comment) => {
+            comment.likes++;
+        },
+        reply : (comment) => {
+            app.new_comment.to_id = comment.id;
+            app.new_comment.to_name = comment.user.personaname;
+        }
+    }
+});
+
 var app = new Vue({
-	el: '#app',
-	data: {
-		email: '',
-		pass: '',
-		post: false,
-		invalidEmail: false,
-		invalidPass: false,
-		invalidSum: false,
-		posts: [],
-		addSum: 0,
-		amount: 0,
-		likes: 0,
-		commentText: '',
-		boosterpacks: [],
-		invalidLoginForm : {
-			message : '',
-			hasError : false
-		}
-	},
-	computed: {
-		test: function () {
-			var data = [];
-			return data;
-		}
-	},
-	created(){
-		var self = this
-		axios
-			.get('/main_page/get_all_posts')
-			.then(function (response) {
-				self.posts = response.data.posts;
-			})
+    el: '#app',
+    data: function () {
+        return {
+            email: '',
+            pass: '',
+            post: false,
+            invalidEmail: false,
+            invalidPass: false,
+            invalidSum: false,
+            posts: [],
+            addSum: 0,
+            amount: 0,
+            new_comment: {
+                text: "",
+                to_id: 0,
+                to_name : ""
+            },
+            boosterpacks: [],
+            invalidLoginForm: {
+                message: '',
+                hasError: false
+            },
+            user_data: {}
+        }
+    },
+    computed: {
+        test: function () {
+            var data = [];
+            return data;
+        },
+        isUserLogged: function () {
+            return this.user_data && Object.keys(this.user_data).length;
+        }
+    },
+    created() {
+        var self = this
+        axios
+            .get('/main_page/get_all_posts')
+            .then(function (response) {
+                self.posts = response.data.posts;
+            })
 
-		axios
-			.get('/main_page/get_boosterpacks')
-			.then(function (response) {
-				self.boosterpacks = response.data.boosterpacks;
-			})
-	},
-	methods: {
-		logout: function () {
-			console.log ('logout');
-		},
-		logIn: function () {
-			var self= this;
+        axios
+            .get('/main_page/get_boosterpacks')
+            .then(function (response) {
+                self.boosterpacks = response.data.boosterpacks;
+            })
 
-			self.invalidEmail = false;
-			self.invalidPass = false;
-			self.invalidLoginForm.hasError = false;
+        axios.get('/user/load')
+            .then(response => {
+                self.user_data = response.data.user_data;
+            })
+    },
+    methods: {
+        sendPost: (formData, callback) => {
+            axios.get("csrf/get_token").then((response) => {
+                if (response.data.status !== "success") {
+                    return;
+                }
+                formData.append('csrf_token', response.data.token);
+                callback();
+            });
+        },
+        logout: function () {
+            axios.get("user/logout").then((response) => {
+                if (response.data.status === "success") {
+                    this.user_data = {};
+                }
+            });
+        },
+        logIn: function () {
+            var self = this;
 
-			if(self.email === ''){
-				self.invalidEmail = true
-			}
-			else if(self.pass === ''){
-				self.invalidPass = true
-			}
-			else{
-				form = new FormData();
-				form.append("email", self.email);
-				form.append("password", self.pass);
+            self.invalidEmail = false;
+            self.invalidPass = false;
+            self.invalidLoginForm.hasError = false;
 
-                axios.get("csrf/get_token").then((response) => {
-                    if (response.data.status !== "success") {
-                        return;
-                    }
-                    form.append('csrf_token', response.data.token);
-                    axios.post('/main_page/login', form)
+            if (self.email === '') {
+                self.invalidEmail = true
+            } else if (self.pass === '') {
+                self.invalidPass = true
+            } else {
+                form = new FormData();
+                form.append("email", self.email);
+                form.append("password", self.pass);
+
+                self.sendPost(form, () => {
+                    axios.post('/user/login', form)
                         .then(function (response) {
-                            if (response.data.user) {
-                                location.reload();
+                            if (response.data.user_data) {
+                                self.user_data = response.data.user_data;
+
+                                setTimeout(function () {
+                                    $('#loginModal').modal('hide');
+                                }, 0);
                                 return;
                             }
                             if (response.data.status !== "success") {
-								self.invalidLoginForm.message = response.data.error_message;
-								self.invalidLoginForm.hasError = true;
-							} else {
-								setTimeout(function () {
-									$('#loginModal').modal('hide');
-								}, 500);
-							}
+                                self.invalidLoginForm.message = response.data.error_message;
+                                self.invalidLoginForm.hasError = true;
+                            } else {
+                                setTimeout(function () {
+                                    $('#loginModal').modal('hide');
+                                }, 500);
+                            }
                         })
                 })
-			}
-		},
-		addComment: function(id) {
-			var self = this;
-			if(self.commentText) {
+            }
+        },
+        addComment: function (id) {
+            var self = this;
+            if (Object.keys(self.new_comment).length) {
 
-				var comment = new FormData();
-				comment.append('postId', id);
-				comment.append('commentText', self.commentText);
+                var comment = new FormData();
+                comment.append('post_id', id);
+                comment.append('comment_ext', self.new_comment.text);
+                comment.append('reply_id', self.new_comment.to_id);
 
-				axios.post(
-					'/main_page/comment',
-					comment
-				).then(function () {
+                self.sendPost(comment, function () {
+                    axios.post(
+                        '/comments/add',
+                        comment
+                    ).then(function (response) {
+                        if (response.data.status === "success") {
+                            self.post.comments = response.data.comments;
+                            self.new_comment = {
+                                text: "",
+                                to_id: 0,
+                                to_name : ""
+                            }
+                        }
+                    });
+                });
+            }
+        },
+        refill: function () {
+            var self = this;
+            if (self.addSum === 0) {
+                self.invalidSum = true
+            } else {
+                self.invalidSum = false
+                sum = new FormData();
+                sum.append('sum', self.addSum);
+                axios.post('/main_page/add_money', sum)
+                    .then(function (response) {
+                        setTimeout(function () {
+                            $('#addModal').modal('hide');
+                        }, 500);
+                    })
+            }
+        },
+        openPost: function (id) {
+            var self = this;
+            axios
+                .get('/main_page/get_post/' + id)
+                .then(function (response) {
+                    self.post = response.data.post;
+                    if (self.post) {
+                        setTimeout(function () {
+                            $('#postModal').modal('show');
+                        }, 500);
+                    }
+                })
+        },
+        addLike: function (type, id) {
+            var self = this;
+            const url = '/main_page/like_' + type + '/' + id;
+            axios
+                .get(url)
+                .then(function (response) {
+                    self.likes = response.data.likes;
+                })
 
-				});
-			}
+        },
+        buyPack: function (id) {
+            var self = this;
+            var pack = new FormData();
+            pack.append('id', id);
 
-		},
-		refill: function () {
-			var self= this;
-			if(self.addSum === 0){
-				self.invalidSum = true
-			}
-			else{
-				self.invalidSum = false
-				sum = new FormData();
-				sum.append('sum', self.addSum);
-				axios.post('/main_page/add_money', sum)
-					.then(function (response) {
-						setTimeout(function () {
-							$('#addModal').modal('hide');
-						}, 500);
-					})
-			}
-		},
-		openPost: function (id) {
-			var self= this;
-			axios
-				.get('/main_page/get_post/' + id)
-				.then(function (response) {
-					self.post = response.data.post;
-					if(self.post){
-						setTimeout(function () {
-							$('#postModal').modal('show');
-						}, 500);
-					}
-				})
-		},
-		addLike: function (type, id) {
-			var self = this;
-			const url = '/main_page/like_' + type + '/' + id;
-			axios
-				.get(url)
-				.then(function (response) {
-					self.likes = response.data.likes;
-				})
-
-		},
-		buyPack: function (id) {
-			var self= this;
-			var pack = new FormData();
-			pack.append('id', id);
-
-			axios.get("csrf/get_token").then((response) => {
-				if (response.data.status !== "success") {
-					return;
-				}
-				pack.append('csrf_token', response.data.token);
-				axios.post('/main_page/buy_boosterpack', pack)
-					.then(function (response) {
-						self.amount = response.data.amount
-						if(self.amount !== 0){
-							setTimeout(function () {
-								$('#amountModal').modal('show');
-							}, 500);
-						}
-					});
-			});
+            axios.get("csrf/get_token").then((response) => {
+                if (response.data.status !== "success") {
+                    return;
+                }
+                pack.append('csrf_token', response.data.token);
+                axios.post('/main_page/buy_boosterpack', pack)
+                    .then(function (response) {
+                        self.amount = response.data.amount
+                        if (self.amount !== 0) {
+                            setTimeout(function () {
+                                $('#amountModal').modal('show');
+                            }, 500);
+                        }
+                    });
+            });
 
 
-		}
-	}
+        }
+    }
 });
 

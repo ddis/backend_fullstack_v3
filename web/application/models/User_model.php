@@ -411,9 +411,29 @@ class User_model extends Emerald_model {
                 return self::_preparation_main_page($data);
             case 'default':
                 return self::_preparation_default($data);
+            case 'full' :
+                return self::_preparation_full($data);
             default:
                 throw new Exception('undefined preparation type');
         }
+    }
+
+
+    private static function _preparation_full (User_model $data)
+    {
+        $o = new stdClass();
+
+        $o->id = $data->get_id();
+
+        $o->personaname = $data->get_personaname();
+        $o->avatarfull = $data->get_avatarfull();
+
+        $o->time_created = $data->get_time_created();
+        $o->time_updated = $data->get_time_updated();
+
+        $o->likes_balance = $data->get_likes_balance();
+
+        return $o;
     }
 
     /**

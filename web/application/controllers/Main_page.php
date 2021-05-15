@@ -1,7 +1,6 @@
 <?php
 
 use Model\Boosterpack_model;
-use Model\Login_model;
 use Model\Post_model;
 use Model\User_model;
 
@@ -46,60 +45,13 @@ class Main_page extends MY_Controller
 
     public function get_post(int $post_id)
     {
-        $post = Post_model::preparation(new Post_model($post_id));
+        $post = Post_model::preparation(new Post_model($post_id), 'full_info');
 
         if (!$post) {
             throw new Exception("Post with id {$post_id} not found", 404);
         }
 
         return $this->response_success(['post' => $post]);
-    }
-
-
-    public function comment(){
-
-        if ( ! User_model::is_logged())
-        {
-            return $this->response_error(System\Libraries\Core::RESPONSE_GENERIC_NEED_AUTH);
-        }
-
-        //TODO логика комментирования поста
-    }
-
-    /**
-     * Method for login users in our system
-     *
-     * @return object|string|void
-     */
-    public function login()
-    {
-        $user_name = $this->input->post("email");
-        $user_password = $this->input->post('password');
-
-        if (!$user_password OR !$user_name) {
-            return $this->response_error("Email or Password can't be empty");
-        }
-
-        try {
-            $user = Login_model::login($user_name, $user_password);
-        } catch (Exception $exception) {
-            return $this->response_error($exception->getMessage());
-        }
-
-        return $this->response_success(['user' => $user->get_id()]);
-    }
-
-
-    public function logout()
-    {
-        if ( ! User_model::is_logged())
-        {
-            $this->go_back();
-        }
-
-        Login_model::logout();
-
-        $this->go_back();
     }
 
     public function add_money(){

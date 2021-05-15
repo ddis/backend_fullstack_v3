@@ -307,15 +307,20 @@ class Emerald_model {
 
     /**
      * @param array $data
+     * @param string $key
      * @return static[]
      */
-    protected static function transform_many(array $data): array
+    protected static function transform_many(array $data, string $key = ''): array
     {
         $objs = [];
 
         foreach ($data as $d)
         {
-            $objs[] = (new static())->set($d);
+            if (!empty($key) && isset($d[$key])) {
+                $objs[$d[$key]] = (new static())->set($d);
+            } else {
+                $objs[] = (new static())->set($d);
+            }
         }
         return $objs;
     }

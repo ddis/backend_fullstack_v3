@@ -26,29 +26,21 @@ use Model\User_model;
       </button>
       <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
         <li class="nav-item">
-            <? if (User_model::is_logged()) {?>
-              <a href="/main_page/logout" class="btn btn-primary my-2 my-sm-0"
-                 data-target="#loginModal">Log out, <?= $user->personaname?>
-              </a>
-            <? } else {?>
-              <button type="button" class="btn btn-success my-2 my-sm-0" type="submit" data-toggle="modal"
+              <button type="button" @click="logout()" class="btn btn-primary my-2 my-sm-0" v-if="isUserLogged">Log out, {{user_data.personaname}}
+              </button>
+              <button type="button" class="btn btn-success my-2 my-sm-0" data-toggle="modal" v-else
                       data-target="#loginModal">Log IN
               </button>
-            <? } ?>
         </li>
         <li class="nav-item">
-            <?  if (User_model::is_logged()) {?>
-              <button type="button" class="btn btn-success my-2 my-sm-0" type="submit" data-toggle="modal"
+              <button type="button" class="btn btn-success my-2 my-sm-0" data-toggle="modal" v-if="isUserLogged"
                       data-target="#addModal">Add balance
               </button>
-            <? }?>
         </li>
         <li class="nav-item">
-            <?  if (User_model::is_logged()) {?>
-                <a href="" role="button">
-                    Likes:
+                <a href="#" role="button" v-if="isUserLogged">
+                    Likes: {{user_data.likes_balance}}
                 </a>
-            <? }?>
         </li>
       </div>
 <!--      <div class="collapse navbar-collapse" id="navbarTogglerDemo01">-->

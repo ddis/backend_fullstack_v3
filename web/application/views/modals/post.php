@@ -17,8 +17,8 @@
                 <div class="card mb-3">
                     <div class="post-img" v-bind:style="{ backgroundImage: 'url(' + post.img + ')' }"></div>
                     <div class="card-body">
-                        <div class="likes" @click="addLike('post', post.id)">
-                            <div class="heart-wrap" v-if="!likes">
+                        <div class="likes" @click="addPostLike(post)">
+                            <div class="heart-wrap">
                                 <div class="heart">
                                     <svg class="bi bi-heart" width="1em" height="1em" viewBox="0 0 16 16"
                                          fill="currentColor" xmlns="http://www.w3.org/2000/svg">

@@ -2,6 +2,7 @@
 namespace Model;
 use App;
 use Exception;
+use Model\traits\Add_likes;
 use stdClass;
 use System\Emerald\Emerald_model;
 
@@ -13,6 +14,8 @@ use System\Emerald\Emerald_model;
  */
 class Post_model extends Emerald_Model
 {
+    use Add_likes;
+
     const CLASS_TABLE = 'post';
 
 

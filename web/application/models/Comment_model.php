@@ -4,6 +4,7 @@ namespace Model;
 
 use App;
 use Exception;
+use Model\traits\Add_likes;
 use stdClass;
 use System\Emerald\Emerald_model;
 
@@ -14,6 +15,9 @@ use System\Emerald\Emerald_model;
  * Time: 10:10
  */
 class Comment_model extends Emerald_Model {
+
+    use Add_likes;
+
     const CLASS_TABLE = 'comment';
 
 
@@ -274,7 +278,8 @@ class Comment_model extends Emerald_Model {
     {
         return static::transform_many(App::get_s()->from(self::CLASS_TABLE)
             ->where(['assign_id' => $assign_id])
-            ->orderBy(["level", "time_created"], "DESC")
+            ->orderBy(["level"], "DESC")
+            ->orderBy("time_created", "ASC")
             ->many(), "id");
     }
 

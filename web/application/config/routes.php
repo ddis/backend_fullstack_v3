@@ -58,8 +58,6 @@ $route['error'] = 'api/error';
 
 $route['translate_uri_dashes'] = FALSE;
 
-$route['csrf/get_token'] = "csrf/get_token";
-
 //Localization routification
 
 

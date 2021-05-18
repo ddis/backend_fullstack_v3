@@ -24,9 +24,12 @@ Vue.component("comments-tree", {
                     </div>
                 </div>
                 {{comment.text}}
-                <comments-tree class="item" v-for="(child, index) in comment.children" :comment="child" v-if="hasChild"></comments-tree>`,
+                <comments-tree class="item" v-for="(child, index) in comment.children" :comment="child" v-if="hasChild"></comments-tree>
+            </div>
+        </div>`,
     props: {
-        comment: Object
+        comment: Object,
+        userLogged : Boolean
     },
     data: function () {
         return {}
@@ -38,7 +41,27 @@ Vue.component("comments-tree", {
     },
     methods: {
         addLike: (comment) => {
-            comment.likes++;
+            if (!app.isUserLogged) {
+                alert("Need login");
+                return;
+            }
+            if (app.user_data.likes_balance === 0) {
+                alert("You haven't likes");
+                return;
+            }
+            let form = new FormData();
+
+            form.append("id", comment.id);
+
+            app.sendPostRequest(form, function () {
+                axios.post('/comment/add_like', form)
+                    .then(function (response) {
+                        if (response.data.status === "success") {
+                            comment.likes = response.data.likes_count;
+                            app.user_data.likes_balance--;
+                        }
+                    })
+            })
         },
         reply : (comment) => {
             app.new_comment.to_id = comment.id;
@@ -85,7 +108,7 @@ var app = new Vue({
     created() {
         var self = this
         axios
-            .get('/main_page/get_all_posts')
+            .get('/post/get_all_posts')
             .then(function (response) {
                 self.posts = response.data.posts;
             })
@@ -102,7 +125,7 @@ var app = new Vue({
             })
     },
     methods: {
-        sendPost: (formData, callback) => {
+        sendPostRequest: (formData, callback) => {
             axios.get("csrf/get_token").then((response) => {
                 if (response.data.status !== "success") {
                     return;
@@ -134,7 +157,7 @@ var app = new Vue({
                 form.append("email", self.email);
                 form.append("password", self.pass);
 
-                self.sendPost(form, () => {
+                self.sendPostRequest(form, () => {
                     axios.post('/user/login', form)
                         .then(function (response) {
                             if (response.data.user_data) {
@@ -166,9 +189,9 @@ var app = new Vue({
                 comment.append('comment_ext', self.new_comment.text);
                 comment.append('reply_id', self.new_comment.to_id);
 
-                self.sendPost(comment, function () {
+                self.sendPostRequest(comment, function () {
                     axios.post(
-                        '/comments/add',
+                        '/comment/add',
                         comment
                     ).then(function (response) {
                         if (response.data.status === "success") {
@@ -202,7 +225,7 @@ var app = new Vue({
         openPost: function (id) {
             var self = this;
             axios
-                .get('/main_page/get_post/' + id)
+                .get('/post/get_post/' + id)
                 .then(function (response) {
                     self.post = response.data.post;
                     if (self.post) {
@@ -212,15 +235,30 @@ var app = new Vue({
                     }
                 })
         },
-        addLike: function (type, id) {
+        addPostLike: function (post) {
             var self = this;
-            const url = '/main_page/like_' + type + '/' + id;
-            axios
-                .get(url)
-                .then(function (response) {
-                    self.likes = response.data.likes;
-                })
 
+            if (!self.isUserLogged) {
+                alert("Need login");
+                return;
+            }
+            if (self.user_data.likes_balance === 0) {
+                alert("You haven't likes");
+                return;
+            }
+            let form = new FormData();
+
+            form.append("id", post.id);
+
+            self.sendPostRequest(form, function () {
+                axios.post('/post/add_like', form)
+                    .then(function (response) {
+                        if (response.data.status === "success") {
+                            self.post.likes = response.data.likes_count;
+                            self.user_data.likes_balance--;
+                        }
+                    })
+            })
         },
         buyPack: function (id) {
             var self = this;

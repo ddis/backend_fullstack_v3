@@ -31,27 +31,10 @@ class Main_page extends MY_Controller
         App::get_ci()->load->view('main_page', ['user' => User_model::preparation($user, 'default')]);
     }
 
-    public function get_all_posts()
-    {
-        $posts =  Post_model::preparation_many(Post_model::get_all(), 'default');
-        return $this->response_success(['posts' => $posts]);
-    }
-
     public function get_boosterpacks()
     {
         $posts =  Boosterpack_model::preparation_many(Boosterpack_model::get_all(), 'default');
         return $this->response_success(['boosterpacks' => $posts]);
-    }
-
-    public function get_post(int $post_id)
-    {
-        $post = Post_model::preparation(new Post_model($post_id), 'full_info');
-
-        if (!$post) {
-            throw new Exception("Post with id {$post_id} not found", 404);
-        }
-
-        return $this->response_success(['post' => $post]);
     }
 
     public function add_money(){

@@ -42,6 +42,11 @@ use Model\User_model;
                     Likes: {{user_data.likes_balance}}
                 </a>
         </li>
+          <li class="nav-item">
+              <a href="#" role="button" v-if="isUserLogged">
+                  Balance: {{user_data.wallet_balance}}
+              </a>
+          </li>
       </div>
 <!--      <div class="collapse navbar-collapse" id="navbarTogglerDemo01">-->
 <!--        <li class="nav-item">-->

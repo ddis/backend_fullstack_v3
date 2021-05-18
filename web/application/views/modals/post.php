@@ -29,17 +29,6 @@
                                 </div>
                                 <span>{{post.likes}}</span>
                             </div>
-                            <div class="heart-wrap" v-else>
-                                <div class="heart">
-                                    <svg class="bi bi-heart-fill" width="1em" height="1em" viewBox="0 0 16 16"
-                                         fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                        <path fill-rule="evenodd"
-                                              d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"
-                                              clip-rule="evenodd"/>
-                                    </svg>
-                                </div>
-                                <span>{{likes}}</span>
-                            </div>
                         </div>
                         <comments-tree class="item" v-for="(comment, index) in post.comments"
                                        :comment="comment"></comments-tree>

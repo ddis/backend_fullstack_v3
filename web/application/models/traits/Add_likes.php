@@ -35,14 +35,14 @@ trait Add_likes
             } else
             {
                 App::get_s()->rollback()->execute();
-                return FALSE;
+                throw new Exception("Something went wrong");
             }
 
             return $post->reload()->get_likes();
 
         } catch (\Throwable $exception) {
             App::get_s()->rollback()->execute();
-            return FALSE;
+            throw $exception;
         }
     }
 }

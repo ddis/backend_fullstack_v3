@@ -38,7 +38,7 @@ class Post extends MY_Controller
 
     /**
      * @return object|string|void
-     * @throws Exception
+     * @throws Throwable
      */
     public function add_like()
     {
@@ -50,11 +50,6 @@ class Post extends MY_Controller
 
         try {
             $new_likes_count = Post_model::add_like($entity_id);
-
-            if ($new_likes_count === FALSE)
-            {
-                return $this->response_error("Something went wrong");
-            }
         } catch (Exception $exception) {
             return $this->response_error($exception->getMessage(), [], $exception->getCode());
         }

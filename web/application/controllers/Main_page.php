@@ -12,7 +12,9 @@ use Model\User_model;
  */
 class Main_page extends MY_Controller
 {
-
+    /**
+     * Main_page constructor.
+     */
     public function __construct()
     {
 
@@ -24,6 +26,9 @@ class Main_page extends MY_Controller
         }
     }
 
+    /**
+     * @throws Exception
+     */
     public function index()
     {
         $user = User_model::get_user();
@@ -31,12 +36,19 @@ class Main_page extends MY_Controller
         App::get_ci()->load->view('main_page', ['user' => User_model::preparation($user, 'default')]);
     }
 
+    /**
+     * @return object|string|void
+     */
     public function get_boosterpacks()
     {
         $posts =  Boosterpack_model::preparation_many(Boosterpack_model::get_all(), 'default');
         return $this->response_success(['boosterpacks' => $posts]);
     }
 
+    /**
+     * @return object|string|void
+     * @throws Throwable
+     */
     public function add_money(){
         if ( ! User_model::is_logged())
         {
@@ -45,7 +57,16 @@ class Main_page extends MY_Controller
 
         $sum = (float)App::get_ci()->input->post('sum');
 
-        //TODO логика добавления денег
+        try {
+            $user_model = User_model::get_user();
+
+            $new_balance = $user_model->add_money($sum);
+
+            return $this->response_success(['new_balance' => $new_balance]);
+        } catch (Exception $exception) {
+            return $this->response_error($exception->getMessage(), [], $exception->getCode());
+        }
+
     }
 
     public function buy_boosterpack()
@@ -58,39 +79,6 @@ class Main_page extends MY_Controller
 
         //TODO логика покупки и открытия бустерпака по алгоритмку профитбанк, как описано в ТЗ
     }
-
-
-    /**
-     *
-     * @return object|string|void
-     */
-    public function like_comment(int $comment_id)
-    {
-        // Check user is authorize
-        if ( ! User_model::is_logged())
-        {
-            return $this->response_error(System\Libraries\Core::RESPONSE_GENERIC_NEED_AUTH);
-        }
-
-        //TODO логика like comment(remove like у юзерa, добавить лай к комменту)
-    }
-
-    /**
-     * @param int $post_id
-     *
-     * @return object|string|void
-     */
-    public function like_post(int $post_id)
-    {
-        // Check user is authorize
-        if ( ! User_model::is_logged())
-        {
-            return $this->response_error(System\Libraries\Core::RESPONSE_GENERIC_NEED_AUTH);
-        }
-
-        //TODO логика like post(remove like у юзерa, добавить лай к посту)
-    }
-
 
     /**
      * @return object|string|void

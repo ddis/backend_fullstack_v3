@@ -208,18 +208,29 @@ var app = new Vue({
         },
         refill: function () {
             var self = this;
+            let userAddSum = parseFloat(self.addSum);
+            if (Number.isNaN(userAddSum)) {
+                userAddSum = 0;
+            }
+            self.addSum = userAddSum;
             if (self.addSum === 0) {
                 self.invalidSum = true
             } else {
                 self.invalidSum = false
                 sum = new FormData();
                 sum.append('sum', self.addSum);
-                axios.post('/main_page/add_money', sum)
-                    .then(function (response) {
-                        setTimeout(function () {
-                            $('#addModal').modal('hide');
-                        }, 500);
-                    })
+                self.sendPostRequest(sum, ()=>{
+                    axios.post('/main_page/add_money', sum)
+                        .then(function (response) {
+                            if (response.data.status === "success") {
+                                self.user_data.wallet_balance = response.data.new_balance;
+                                self.addSum = 0;
+                            }
+                            setTimeout(function () {
+                                $('#addModal').modal('hide');
+                            }, 500);
+                        })
+                })
             }
         },
         openPost: function (id) {

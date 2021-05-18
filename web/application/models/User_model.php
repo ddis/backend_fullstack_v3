@@ -5,6 +5,7 @@ use App;
 use Exception;
 use stdClass;
 use System\Emerald\Emerald_model;
+use Throwable;
 
 /**
  * Created by PhpStorm.
@@ -260,15 +261,37 @@ class User_model extends Emerald_model {
 
     /**
      * @param float $sum
-     *
-     * @return bool
+     * @return float
+     * @throws Throwable
      * @throws \ShadowIgniterException
      */
-    public function add_money(float $sum): bool
+    public function add_money(float $sum): ?float
     {
-        //TODO добавление денег
+        App::get_s()->set_transaction_repeatable_read()->execute();
+        App::get_s()->start_trans()->execute();
 
-        return TRUE;
+        try {
+            $res = App::get_s()->from(self::CLASS_TABLE)->update([
+                'wallet_balance' => $this->get_wallet_balance() + $sum,
+                'wallet_total_refilled' => $this->get_wallet_total_refilled() + $sum
+            ])->execute();
+
+            if ($res) {
+                App::get_s()->commit()->execute();
+
+                $this->reload();
+
+                return $this->get_wallet_balance();
+            } else {
+                App::get_s()->rollback()->execute();
+
+                throw new Exception("Something went wrong");
+            }
+        } catch (Throwable $exception) {
+            App::get_s()->rollback()->execute();
+
+            throw $exception;
+        }
     }
 
 
@@ -432,6 +455,7 @@ class User_model extends Emerald_model {
         $o->time_updated = $data->get_time_updated();
 
         $o->likes_balance = $data->get_likes_balance();
+        $o->wallet_balance =$data->get_wallet_balance();
 
         return $o;
     }

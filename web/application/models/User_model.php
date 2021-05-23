@@ -271,12 +271,12 @@ class User_model extends Emerald_model {
         App::get_s()->start_trans()->execute();
 
         try {
-            $res = App::get_s()->from(self::CLASS_TABLE)->update([
+            $res = App::get_s()->from(self::CLASS_TABLE)->where(['id' => $this->get_id()])->update([
                 'wallet_balance' => $this->get_wallet_balance() + $sum,
                 'wallet_total_refilled' => $this->get_wallet_total_refilled() + $sum
             ])->execute();
 
-            if ($res) {
+            if ($res && App::get_s()->is_affected()) {
                 App::get_s()->commit()->execute();
 
                 $this->reload();

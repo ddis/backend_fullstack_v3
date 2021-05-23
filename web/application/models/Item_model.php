@@ -13,7 +13,8 @@ use stdClass;
  * Date: 27.01.2020
  * Time: 10:10
  */
-class Item_model extends Emerald_model {
+class Item_model extends Emerald_model
+{
     const CLASS_TABLE = 'items';
 
     protected $price;
@@ -79,6 +80,24 @@ class Item_model extends Emerald_model {
         App::get_s()->from(self::CLASS_TABLE)->insert($data)->execute();
 
         return new static(App::get_s()->get_insert_id());
+    }
+
+    /**
+     * @param float $price
+     * @return Item_model[]|void
+     */
+    public static function get_by_max_price(float $price, int $booster_pack_id)
+    {
+        return static::transform_many(
+            App::get_s()
+                ->from(self::CLASS_TABLE)
+                ->join(Boosterpack_info_model::CLASS_TABLE, [
+                    Boosterpack_info_model::CLASS_TABLE.".item_id" => self::CLASS_TABLE.".id"
+                ])
+                ->where(self::CLASS_TABLE.".price <", $price)
+                ->where(Boosterpack_info_model::CLASS_TABLE.".boosterpack_id =", $booster_pack_id)
+                ->many()
+        );
     }
 
     public function delete(): bool

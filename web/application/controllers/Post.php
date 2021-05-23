@@ -46,7 +46,7 @@ class Post extends MY_Controller
             return $this->response_error(\System\Libraries\Core::RESPONSE_GENERIC_NEED_AUTH);
         }
 
-        $entity_id = (int)$this->input->post("id");
+        $entity_id = (int)App::get_ci()->input->post("id");
 
         try {
             $new_likes_count = Post_model::add_like($entity_id);

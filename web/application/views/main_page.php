@@ -48,23 +48,6 @@ use Model\User_model;
               </a>
           </li>
       </div>
-<!--      <div class="collapse navbar-collapse" id="navbarTogglerDemo01">-->
-<!--        <li class="nav-item">-->
-<!--            --><?// if (User_model::is_logged()) {?>
-<!--              <button type="button" class="btn btn-primary my-2 my-sm-0" type="submit" data-toggle="modal"-->
-<!--                      data-target="#loginModal">Log in-->
-<!--              </button>-->
-<!--            --><?// } else {?>
-<!--              <button type="button" class="btn btn-danger my-2 my-sm-0" href="/logout">Log out-->
-<!--              </button>-->
-<!--            --><?// } ?>
-<!--        </li>-->
-<!--        <li class="nav-item">-->
-<!--          <button type="button" class="btn btn-success my-2 my-sm-0" type="submit" data-toggle="modal"-->
-<!--                  data-target="#addModal">Add balance-->
-<!--          </button>-->
-<!--        </li>-->
-<!--      </div>-->
     </nav>
   </div>
   <div class="main">
@@ -94,7 +77,7 @@ use Model\User_model;
               <div class="card">
                 <img :src="'/images/box.png'" class="card-img-top" alt="Photo">
                 <div class="card-body">
-                  <button type="button" class="btn btn-outline-success my-2 my-sm-0" @click="buyPack(boosterpack.id)">Buy boosterpack {{boosterpack.price}}$
+                  <button type="button" class="btn btn-outline-success my-2 my-sm-0" @click="buyPack(boosterpack)">Buy boosterpack {{boosterpack.price}}$
                   </button>
                 </div>
               </div>
@@ -109,54 +92,12 @@ use Model\User_model;
     <?php require_once "modals/login.php"?>
     <!-- Modal -->
     <?php require_once "modals/post.php"?>
-  <!-- Modal -->
-  <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-       aria-hidden="true">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLabel">Add money</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <form>
-            <div class="form-group">
-              <label for="exampleInputEmail1">Enter sum</label>
-              <input type="text" class="form-control" id="addBalance" v-model="addSum" required>
-              <div class="invalid-feedback" v-if="invalidSum">
-                Please write a sum.
-              </div>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-success" @click="refill">Add</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- Modal -->
-  <div class="modal fade" id="amountModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-       aria-hidden="true">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLabel">Amount</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <h2 class="text-center">Likes: {{amount}}</h2>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-success" data-dismiss="modal">Ok</button>
-        </div>
-      </div>
-    </div>
-  </div>
+    <!-- Modal -->
+    <?php require_once "modals/payment.php"?>
+    <!-- Modal -->
+    <?php require_once "modals/pack_result.php"?>
+    <!-- Modal -->
+    <?php require_once "modals/info_modal.php"?>
 </div>
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"

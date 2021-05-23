@@ -18,9 +18,9 @@ class Comment extends MY_Controller
             return $this->response_error(System\Libraries\Core::RESPONSE_GENERIC_NEED_AUTH);
         }
 
-        $post_id = (int)$this->input->post("post_id");
-        $comment_text = htmlspecialchars($this->input->post('comment_ext'));
-        $reply_id = (int)$this->input->post("reply_id");
+        $post_id = (int)App::get_ci()->input->post("post_id");
+        $comment_text = htmlspecialchars(App::get_ci()->input->post('comment_ext'));
+        $reply_id = (int)App::get_ci()->input->post("reply_id");
 
         $res = Comment_model::add_comment($post_id, $comment_text, $reply_id);
 
@@ -43,7 +43,7 @@ class Comment extends MY_Controller
             return $this->response_error(\System\Libraries\Core::RESPONSE_GENERIC_NEED_AUTH);
         }
 
-        $entity_id = (int)$this->input->post("id");
+        $entity_id = (int)App::get_ci()->input->post("id");
 
         try {
             $new_likes_count = Comment_model::add_like($entity_id);

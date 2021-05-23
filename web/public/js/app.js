@@ -29,7 +29,7 @@ Vue.component("comments-tree", {
         </div>`,
     props: {
         comment: Object,
-        userLogged : Boolean
+        userLogged: Boolean
     },
     data: function () {
         return {}
@@ -63,7 +63,7 @@ Vue.component("comments-tree", {
                     })
             })
         },
-        reply : (comment) => {
+        reply: (comment) => {
             app.new_comment.to_id = comment.id;
             app.new_comment.to_name = comment.user.personaname;
         }
@@ -86,14 +86,18 @@ var app = new Vue({
             new_comment: {
                 text: "",
                 to_id: 0,
-                to_name : ""
+                to_name: ""
             },
             boosterpacks: [],
             invalidLoginForm: {
                 message: '',
                 hasError: false
             },
-            user_data: {}
+            user_data: {},
+            info_modal: {
+                title: "",
+                message: ""
+            }
         }
     },
     computed: {
@@ -114,7 +118,7 @@ var app = new Vue({
             })
 
         axios
-            .get('/main_page/get_boosterpacks')
+            .get('/pack/get_boosterpacks')
             .then(function (response) {
                 self.boosterpacks = response.data.boosterpacks;
             })
@@ -199,7 +203,7 @@ var app = new Vue({
                             self.new_comment = {
                                 text: "",
                                 to_id: 0,
-                                to_name : ""
+                                to_name: ""
                             }
                         }
                     });
@@ -219,8 +223,8 @@ var app = new Vue({
                 self.invalidSum = false
                 sum = new FormData();
                 sum.append('sum', self.addSum);
-                self.sendPostRequest(sum, ()=>{
-                    axios.post('/main_page/add_money', sum)
+                self.sendPostRequest(sum, () => {
+                    axios.post('/user/add_money', sum)
                         .then(function (response) {
                             if (response.data.status === "success") {
                                 self.user_data.wallet_balance = response.data.new_balance;
@@ -271,28 +275,43 @@ var app = new Vue({
                     })
             })
         },
-        buyPack: function (id) {
+        buyPack: function (pack) {
             var self = this;
-            var pack = new FormData();
-            pack.append('id', id);
+            var packForm = new FormData();
 
-            axios.get("csrf/get_token").then((response) => {
-                if (response.data.status !== "success") {
-                    return;
-                }
-                pack.append('csrf_token', response.data.token);
-                axios.post('/main_page/buy_boosterpack', pack)
+            if (!self.isUserLogged) {
+                $("#loginModal").modal('show');
+                return;
+            }
+
+            if (self.user_data.wallet_balance < pack.price) {
+                self.showInfoModal("You haven't money for this pack", false);
+                return;
+            }
+
+            packForm.append('id', pack.id);
+
+            self.sendPostRequest(packForm, ()=> {
+                axios.post('/pack/buy_boosterpack', packForm)
                     .then(function (response) {
-                        self.amount = response.data.amount
-                        if (self.amount !== 0) {
+                        if (response.data.status === "success") {
+                            self.amount = response.data.likes_win;
                             setTimeout(function () {
                                 $('#amountModal').modal('show');
+                                self.user_data.wallet_balance = response.data.user_balance;
+                                self.user_data.likes_balance = response.data.user_likes;
                             }, 500);
+                        } else {
+                            self.showInfoModal(response.data.error_message);
                         }
                     });
-            });
+            })
+        },
+        showInfoModal: function (message, title) {
+            this.info_modal.title = title;
+            this.info_modal.message = message;
 
-
+            $("#infoModal").modal("show");
         }
     }
 });
